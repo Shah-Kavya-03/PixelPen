@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PixelPen: Handwritten Digit Recognition</title>
+  <meta name="description" content="Draw it. Snap it. Let AI read it. Real-time handwritten digit recognition powered by Convolutional Neural Networks (CNN).">
+  <meta name="theme-color" content="#00f0ff">
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+
+  <!-- Google Fonts: Outfit (Display) & JetBrains Mono (Stats/Data) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient Neural Glow Orbs -->
+  <div class="ambient-glow glow-cyan" aria-hidden="true"></div>
+  <div class="ambient-glow glow-purple" aria-hidden="true"></div>
+
+  <!-- Main Container -->
+  <div class="app-layout">
+    
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-logo" id="brandLogo">
+          <svg viewBox="0 0 48 48" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="12" fill="url(#headerLogoBg)" />
+            <path d="M24 7 L34.5 23 L29 35.5 L24 41 L19 35.5 L13.5 23 Z" fill="url(#headerLogoPen)" />
+            <line x1="24" y1="15" x2="24" y2="37" stroke="#080a14" stroke-width="2" stroke-linecap="round" />
+            <circle cx="24" cy="26" r="2.5" fill="#080a14" />
+            <circle cx="24" cy="41" r="2" fill="#00f0ff" />
+            <rect x="31" y="28" width="4" height="4" rx="1" fill="#00f0ff" />
+            <rect x="13" y="28" width="4" height="4" rx="1" fill="#a855f7" />
+            <defs>
+              <linearGradient id="headerLogoBg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#0f172a" />
+                <stop offset="1" stop-color="#020617" />
+              </linearGradient>
+              <linearGradient id="headerLogoPen" x1="13.5" y1="7" x2="34.5" y2="41" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#00f0ff" />
+                <stop offset="0.5" stop-color="#3b82f6" />
+                <stop offset="1" stop-color="#a855f7" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1 class="brand-name">Pixel<span class="gradient-text">Pen</span></h1>
+          <p class="brand-tagline">Draw it. Snap it. Let AI read it.</p>
+        </div>
+      </div>
+
+      <!-- Header Controls -->
+      <div class="header-controls">
+        <!-- Backend API Status Indicator -->
+        <button class="status-badge" id="apiStatusBtn" title="Click to configure backend API URL">
+          <span class="status-dot status-loading" id="apiStatusDot"></span>
+          <span class="status-label" id="apiStatusText">Connecting...</span>
+        </button>
+
+        <!-- Sound Toggle -->
+        <button class="btn-icon" id="soundToggleBtn" title="Toggle Sound Effects (M)" aria-label="Toggle Sound Effects">
+          <span id="soundIcon">🔊</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button class="btn-icon" id="themeToggleBtn" title="Toggle Dark/Light Mode (T)" aria-label="Toggle Theme">
+          <span id="themeIcon">🌙</span>
+        </button>
+
+        <!-- PWA Install Button -->
+        <button class="btn-pill btn-pwa hidden" id="pwaInstallBtn">
+          <span>📲 Install App</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Mode Tabs -->
+    <nav class="mode-tabs" role="tablist" aria-label="Input Modes">
+      <button class="tab-btn active" id="tabCanvas" role="tab" aria-selected="true" data-tab="canvas">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+        <span>Draw Digit</span>
+      </button>
+
+      <button class="tab-btn" id="tabUpload" role="tab" aria-selected="false" data-tab="upload">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>Snap & Upload</span>
+      </button>
+
+      <button class="tab-btn" id="tabChallenge" role="tab" aria-selected="false" data-tab="challenge">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span>Digit Challenge</span>
+      </button>
+    </nav>
+
+    <!-- Main Dual-Column Content Grid -->
+    <main class="main-content-grid">
+
+      <!-- LEFT COLUMN: Input Panels (Canvas / Upload / Challenge) -->
+      <section class="input-section glass-panel">
+
+        <!-- ================= MODE 1: CANVAS ================= -->
+        <div class="panel-mode active" id="modeCanvas">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <h2 class="panel-title">Interactive Canvas</h2>
+              <span class="panel-subtitle">Draw with mouse, touch, or stylus pencil</span>
+            </div>
+            
+            <div class="live-toggle-wrap" title="Automatically predict as you draw">
+              <label class="switch-label">
+                <input type="checkbox" id="livePredictToggle" checked>
+                <span class="switch-slider"></span>
+              </label>
+              <span class="live-badge">Live Prediction</span>
+            </div>
+          </div>
+
+          <!-- Canvas Drawing Surface Frame -->
+          <div class="canvas-wrapper" id="canvasWrapper">
+            <!-- Background Dot Grid Layer -->
+            <div class="canvas-grid-bg" aria-hidden="true"></div>
+            <!-- Centering Guide Overlay Frame -->
+            <div class="canvas-guide-box" aria-hidden="true">
+              <div class="guide-corner top-left"></div>
+              <div class="guide-corner top-right"></div>
+              <div class="guide-corner bottom-left"></div>
+              <div class="guide-corner bottom-right"></div>
+              <div class="guide-crosshair"></div>
+              <span class="guide-label">Center digit here</span>
+            </div>
+            <!-- HTML5 Interactive Drawing Canvas -->
+            <canvas id="digitCanvas" width="300" height="300"></canvas>
+          </div>
+
+          <!-- Canvas Toolbar Controls -->
+          <div class="canvas-toolbar">
+            <!-- Brush Size Control -->
+            <div class="toolbar-group brush-control">
+              <label for="brushSize" class="tool-label">Brush: <span id="brushSizeVal">24px</span></label>
+              <input type="range" id="brushSize" min="16" max="38" value="24" step="2" class="range-slider">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="toolbar-group action-buttons">
+              <button class="btn-tool" id="undoBtn" title="Undo Last Stroke (Ctrl+Z or U)" disabled>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+                <span>Undo</span>
+              </button>
+
+              <button class="btn-tool" id="clearBtn" title="Clear Canvas (C)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Clear</span>
+              </button>
+
+              <button class="btn-primary" id="predictBtn" title="Run CNN Prediction (Enter)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Predict</span>
+                <kbd class="kbd-hint">Enter</kbd>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= MODE 2: UPLOAD & SNAP ================= -->
+        <div class="panel-mode" id="modeUpload">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <h2 class="panel-title">Photo & File Scanner</h2>
+              <span class="panel-subtitle">Adaptive thresholding & contour extraction for real-world photos</span>
+            </div>
+          </div>
+
+          <!-- Drag and Drop Dropzone -->
+          <div class="dropzone" id="dropzone">
+            <!-- Scanning Line Animation Beam -->
+            <div class="scan-laser hidden" id="scanLaser"></div>
+
+            <div class="dropzone-content" id="dropzonePrompt">
+              <div class="dropzone-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+              </div>
+              <p class="dropzone-title">Drag & drop photo here</p>
+              <p class="dropzone-subtitle">or choose an image option below</p>
+
+              <div class="dropzone-actions">
+                <!-- Mobile Camera Snapshot Button -->
+                <label class="btn-primary btn-camera" for="cameraInput">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  <span>Camera Snap</span>
+                  <input type="file" id="cameraInput" accept="image/*" capture="environment" class="visually-hidden">
+                </label>
+
+                <!-- File Picker Button -->
+                <label class="btn-tool" for="fileInput">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span>Browse File</span>
+                  <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp" class="visually-hidden">
+                </label>
+              </div>
+            </div>
+
+            <!-- Upload Preview Area -->
+            <div class="upload-preview-wrap hidden" id="uploadPreviewWrap">
+              <img id="uploadPreviewImg" alt="Uploaded handwritten digit preview" class="upload-preview-img">
+              <button class="btn-icon btn-remove-upload" id="removeUploadBtn" title="Remove image">✕</button>
+            </div>
+          </div>
+
+          <!-- Instant Sample Digits Try Bar -->
+          <div class="sample-digits-bar">
+            <span class="sample-label">⚡ Test Instant Presets:</span>
+            <div class="sample-chips" id="sampleChips">
+              <!-- Dynamically populated buttons 0-9 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= MODE 3: DIGIT CHALLENGE GAME ================= -->
+        <div class="panel-mode" id="modeChallenge">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <h2 class="panel-title">Digit Challenge Arena</h2>
+              <span class="panel-subtitle">Test how cleanly and quickly you can draw digits for the AI</span>
+            </div>
+          </div>
+
+          <!-- Challenge HUD Card -->
+          <div class="challenge-hud">
+            <div class="hud-target-card">
+              <span class="hud-label">YOUR TARGET DIGIT</span>
+              <div class="target-digit-display" id="targetDigit">?</div>
+            </div>
+
+            <div class="hud-stats">
+              <div class="stat-pill">
+                <span class="stat-name">⏱️ Time Left</span>
+                <span class="stat-val" id="challengeTimer">10s</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-name">🔥 Streak</span>
+                <span class="stat-val" id="challengeStreak">0</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-name">🏆 High Score</span>
+                <span class="stat-val" id="challengeHighScore">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Challenge Status Banner (Inline Feedback, Replaces Alert Box) -->
+          <div class="challenge-banner hidden" id="challengeBanner">
+            <span class="challenge-banner-icon" id="challengeBannerIcon">🎯</span>
+            <div class="challenge-banner-body">
+              <span class="challenge-banner-title" id="challengeBannerTitle">Target Matched!</span>
+              <span class="challenge-banner-desc" id="challengeBannerDesc">+115 pts • Streak: 1</span>
+            </div>
+          </div>
+
+          <!-- Challenge Canvas Mini Arena -->
+          <div class="challenge-arena">
+            <div class="canvas-wrapper challenge-canvas-wrapper">
+              <canvas id="challengeCanvas" width="280" height="280"></canvas>
+            </div>
+
+            <div class="challenge-controls">
+              <button class="btn-primary" id="startChallengeBtn">Start Challenge</button>
+              <button class="btn-tool" id="clearChallengeBtn">Clear</button>
+              <button class="btn-pill" id="submitChallengeBtn" disabled>Submit Guess</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: Pipeline Inspection & Prediction Results -->
+      <section class="results-section">
+
+        <!-- ================= PREDICTION RESULTS CARD ================= -->
+        <div class="results-card glass-panel" id="resultsCard">
+          <div class="results-header">
+            <span class="card-eyebrow" id="resultsEyebrow">NEURAL RECOGNITION RESULT</span>
+            <span class="latency-badge" id="latencyBadge">⚡ -- ms</span>
+          </div>
+
+          <!-- Challenge Round Status in Results Panel -->
+          <div class="challenge-result-badge hidden" id="challengeResultBadge">
+            <span class="challenge-badge-icon" id="challengeBadgeIcon">🎯</span>
+            <span class="challenge-badge-text" id="challengeBadgeText">Target Hit!</span>
+          </div>
+
+          <!-- Big Digit Reveal & Confidence Meter -->
+          <div class="results-hero">
+            <div class="digit-reveal-wrap">
+              <div class="digit-hero-display" id="digitHero">?</div>
+              <span class="digit-label">PREDICTED DIGIT</span>
+            </div>
+
+            <!-- SVG Confidence Gauge Ring -->
+            <div class="confidence-ring-wrap">
+              <svg class="confidence-ring-svg" viewBox="0 0 120 120">
+                <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+                <circle class="ring-bar" id="confidenceRingBar" cx="60" cy="60" r="50"></circle>
+              </svg>
+              <div class="confidence-content">
+                <span class="confidence-val" id="confidenceVal">0%</span>
+                <span class="confidence-sub">CONFIDENCE</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Low Confidence Warning Banner -->
+          <div class="low-conf-alert hidden" id="lowConfAlert">
+            <span class="alert-icon">⚠️</span>
+            <span class="alert-text">Confidence is low (&lt;60%). Try centering the digit or redrawing with a thicker stroke.</span>
+          </div>
+
+          <!-- All 10 Softmax Probabilities Bar Graph (0-9) -->
+          <div class="probabilities-container">
+            <div class="prob-header">
+              <span class="prob-title">Softmax Probability Distribution (0–9)</span>
+            </div>
+            <div class="prob-bars-grid" id="probBarsGrid">
+              <!-- Dynamically populated 0 through 9 bars -->
+            </div>
+          </div>
+
+          <!-- User Feedback Widget -->
+          <div class="feedback-widget" id="feedbackWidget">
+            <span class="feedback-prompt">Was this prediction accurate?</span>
+            <div class="feedback-actions">
+              <button class="btn-feedback" id="feedbackCorrectBtn" title="Mark as correct">👍 Yes</button>
+              <div class="feedback-incorrect-wrap">
+                <button class="btn-feedback" id="feedbackIncorrectBtn">👎 No</button>
+                <select id="actualDigitSelect" class="digit-select hidden">
+                  <option value="">Actual digit?</option>
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                </select>
+              </div>
+            </div>
+            <span class="feedback-msg hidden" id="feedbackMsg">Saved! Thank you for improving PixelPen.</span>
+          </div>
+        </div>
+
+        <!-- ================= WHAT THE MODEL SEES PANEL ================= -->
+        <div class="pipeline-card glass-panel" id="pipelineCard">
+          <div class="pipeline-header">
+            <div class="pipeline-title-wrap">
+              <span class="card-eyebrow">COMPUTER VISION PIPELINE</span>
+              <h3 class="pipeline-title">What the Model Sees</h3>
+            </div>
+            <span class="pipeline-tag">Dual-Path Preprocessing</span>
+          </div>
+
+          <!-- Horizontal Step-by-Step Visualization Strip -->
+          <div class="pipeline-steps-strip">
+            
+            <div class="pipeline-step">
+              <div class="step-badge">1</div>
+              <div class="step-canvas-box">
+                <img id="stageOriginal" alt="Original Input" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+              </div>
+              <span class="step-name">Original</span>
+            </div>
+
+            <div class="pipeline-arrow">➔</div>
+
+            <div class="pipeline-step">
+              <div class="step-badge">2</div>
+              <div class="step-canvas-box">
+                <img id="stageGray" alt="Grayscale & Denoised" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+              </div>
+              <span class="step-name">Denoise</span>
+            </div>
+
+            <div class="pipeline-arrow">➔</div>
+
+            <div class="pipeline-step">
+              <div class="step-badge">3</div>
+              <div class="step-canvas-box">
+                <img id="stageThreshold" alt="Adaptive Threshold" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+              </div>
+              <span class="step-name">Threshold</span>
+            </div>
+
+            <div class="pipeline-arrow">➔</div>
+
+            <div class="pipeline-step">
+              <div class="step-badge">4</div>
+              <div class="step-canvas-box">
+                <img id="stageCropped" alt="Contour Bounding Box" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+              </div>
+              <span class="step-name">Bounding Box</span>
+            </div>
+
+            <div class="pipeline-arrow">➔</div>
+
+            <div class="pipeline-step highlight-step">
+              <div class="step-badge">5</div>
+              <div class="step-canvas-box final-pixel-box" id="finalPixelBox">
+                <img id="stageFinal28" alt="Final Centered 28x28 Grid" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+              </div>
+              <span class="step-name">28×28 MNIST</span>
+            </div>
+
+          </div>
+
+          <!-- Interactive Pixel Inspector Tooltip -->
+          <div class="pixel-inspector-tip">
+            <span>Hover or tap the 28×28 grid to inspect normalized pixel intensities.</span>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Bottom History Strip -->
+    <footer class="app-footer">
+      <div class="history-bar-wrap">
+        <div class="history-header">
+          <span class="history-title">⏱️ Recent Predictions</span>
+          <button class="btn-link" id="clearHistoryBtn">Clear History</button>
+        </div>
+        <div class="history-strip" id="historyStrip">
+          <div class="history-empty">Draw or upload a digit to build your history log.</div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-copy">PixelPen • Trained on MNIST with Convolutional Neural Networks • Shipped End-to-End</p>
+        <div class="footer-links">
+          <button class="btn-link" id="shortcutsBtn">Keyboard Shortcuts</button>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Backend API Configuration Modal -->
+  <dialog class="modal-dialog" id="apiModal">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Backend API Configuration</h3>
+        <button class="btn-icon" id="closeApiModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          PixelPen connects to the FastAPI backend at:
+        </p>
+        <div class="input-field">
+          <label for="apiUrlInput">API Base URL:</label>
+          <input type="url" id="apiUrlInput" placeholder="http://localhost:8000" class="text-input">
+        </div>
+        <div class="quick-hosts">
+          <button class="btn-pill" id="useLocalhostBtn">Localhost (8000)</button>
+          <button class="btn-pill" id="useLanBtn">Local IP</button>
+        </div>
+        <div class="modal-status" id="modalPingStatus">Status: Not tested</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-tool" id="testApiBtn">Test Connection</button>
+        <button class="btn-primary" id="saveApiBtn">Save & Reconnect</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <dialog class="modal-dialog" id="shortcutsModal">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h3 class="modal-title">⌨️ Keyboard Shortcuts</h3>
+        <button class="btn-icon" id="closeShortcutsModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcut-list">
+          <div class="shortcut-row"><kbd>Enter</kbd><span>Predict digit</span></div>
+          <div class="shortcut-row"><kbd>C</kbd><span>Clear canvas</span></div>
+          <div class="shortcut-row"><kbd>U</kbd> or <kbd>Ctrl+Z</kbd><span>Undo stroke</span></div>
+          <div class="shortcut-row"><kbd>M</kbd><span>Mute / Unmute audio</span></div>
+          <div class="shortcut-row"><kbd>T</kbd><span>Toggle Dark / Light theme</span></div>
+          <div class="shortcut-row"><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd><span>Switch modes (Draw / Upload / Challenge)</span></div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Audio Synthesizer & Application Scripts -->
+  <script src="canvas.js"></script>
+  <script src="upload.js"></script>
+  <script src="pipeline.js"></script>
+  <script src="game.js"></script>
+  <script src="app.js"></script>
+
+  <!-- Register PWA Service Worker -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("service-worker.js")
+          .then((reg) => console.log("[PixelPen PWA] Service Worker registered:", reg.scope))
+          .catch((err) => console.log("[PixelPen PWA] Registration skipped:", err));
+      });
+    }
+  </script>
+</body>
+</html>

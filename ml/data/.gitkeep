@@ -1,0 +1,4 @@
+# Place your raw phone photos or custom drawings in this folder:
+# ml/data/
+#   ├── photos/       (e.g., digit_7_01.jpg, digit_3_02.png)
+#   └── canvas/       (e.g., digit_0_01.png)

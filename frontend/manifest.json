@@ -1,0 +1,24 @@
+{
+  "name": "PixelPen: Handwritten Digit Recognition",
+  "short_name": "PixelPen",
+  "description": "Draw it. Snap it. Let AI read it. Real-time handwritten digit recognition with CNN computer vision.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080a12",
+  "theme_color": "#00f0ff",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
