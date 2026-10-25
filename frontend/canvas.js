@@ -89,7 +89,7 @@ class PixelPenCanvas {
     this.isDrawing = false;
     try {
       this.canvas.releasePointerCapture(e.pointerId);
-    } catch (_) {}
+    } catch (_) { }
 
     this.saveState();
     this.updateUndoButton();

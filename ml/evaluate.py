@@ -100,7 +100,7 @@ def evaluate_custom_samples(model, data_dir="ml/data"):
     # Add backend/app to path for preprocess
     sys.path.append(os.path.abspath("backend/app"))
     try:
-        from preprocess import preprocess_digit
+        from backend.app.preprocess import preprocess_digit
     except ImportError:
         print("Note: Preprocessing module will be tested separately.")
         return

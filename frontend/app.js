@@ -38,6 +38,13 @@ class PixelPenApp {
     this.pwaInstallBtn = document.getElementById("pwaInstallBtn");
     this.deferredPrompt = null;
 
+    // Auto-Clear Timer elements
+    this.autoClearProgress = document.getElementById("autoClearProgress");
+    this.autoClearBar = document.getElementById("autoClearBar");
+    this.autoClearText = document.getElementById("autoClearText");
+    this.autoClearToggle = document.getElementById("autoClearToggle");
+    this.autoClearInterval = null;
+
     // Sub-controllers
     this.pipeline = new PixelPenPipeline();
     this.initCanvas();
@@ -65,6 +72,7 @@ class PixelPenApp {
     this.canvasController = new PixelPenCanvas("digitCanvas", {
       brushSize: 22,
       onStrokeStart: () => {
+        this.cancelAutoClearCountdown();
         this.playSound("brush");
       },
       onStrokeEnd: () => {
@@ -88,6 +96,7 @@ class PixelPenApp {
     const clearBtn = document.getElementById("clearBtn");
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
+        this.cancelAutoClearCountdown();
         this.canvasController.clear();
         this.resetResults();
         this.playSound("clear");
@@ -97,14 +106,25 @@ class PixelPenApp {
     const undoBtn = document.getElementById("undoBtn");
     if (undoBtn) {
       undoBtn.addEventListener("click", () => {
+        this.cancelAutoClearCountdown();
         this.canvasController.undo();
         this.playSound("brush");
+      });
+    }
+
+    const autoClearToggle = document.getElementById("autoClearToggle");
+    if (autoClearToggle) {
+      autoClearToggle.addEventListener("change", (e) => {
+        if (!e.target.checked) {
+          this.cancelAutoClearCountdown();
+        }
       });
     }
 
     const predictBtn = document.getElementById("predictBtn");
     if (predictBtn) {
       predictBtn.addEventListener("click", () => {
+        this.cancelAutoClearCountdown();
         this.predictCanvas();
       });
     }
@@ -234,12 +254,15 @@ class PixelPenApp {
 
       if (e.key === "Enter") {
         e.preventDefault();
+        this.cancelAutoClearCountdown();
         this.predictCanvas();
       } else if (e.key.toLowerCase() === "c") {
+        this.cancelAutoClearCountdown();
         this.canvasController.clear();
         this.resetResults();
         this.playSound("clear");
       } else if (e.key.toLowerCase() === "u") {
+        this.cancelAutoClearCountdown();
         this.canvasController.undo();
         this.playSound("brush");
       } else if (e.key.toLowerCase() === "m") {
@@ -257,6 +280,7 @@ class PixelPenApp {
   }
 
   switchMode(mode) {
+    this.cancelAutoClearCountdown();
     document.querySelectorAll(".tab-btn").forEach((t) => {
       const isActive = t.dataset.tab === mode;
       t.classList.toggle("active", isActive);
@@ -457,7 +481,14 @@ class PixelPenApp {
     if (isDigit) {
       this.addToHistory(data.digit, pct, inputThumb);
       this.playSound("predict");
+
+      // Trigger Idle Timer Auto-Clear countdown if in canvas mode
+      const isCanvasMode = document.getElementById("modeCanvas")?.classList.contains("active");
+      if (isCanvasMode) {
+        this.startAutoClearCountdown(2000);
+      }
     } else {
+      this.cancelAutoClearCountdown();
       this.playSound("clear");
     }
   }
@@ -478,6 +509,57 @@ class PixelPenApp {
       if (val) val.textContent = "0.0%";
     }
     this.pipeline.resetStages();
+  }
+
+  // ================= AUTO-CLEAR COUNTDOWN LOGIC =================
+  startAutoClearCountdown(delayMs = 2000) {
+    const toggle = document.getElementById("autoClearToggle") || this.autoClearToggle;
+    if (!toggle || !toggle.checked) return;
+    this.cancelAutoClearCountdown();
+
+    const progressEl = document.getElementById("autoClearProgress") || this.autoClearProgress;
+    const barEl = document.getElementById("autoClearBar") || this.autoClearBar;
+    const textEl = document.getElementById("autoClearText") || this.autoClearText;
+
+    if (!progressEl || !barEl || !textEl) return;
+
+    progressEl.classList.remove("hidden");
+    const startTime = Date.now();
+
+    const updateCountdown = () => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, delayMs - elapsed);
+      const progressPct = Math.max(0, (remaining / delayMs) * 100);
+
+      barEl.style.width = `${progressPct}%`;
+      textEl.textContent = `Auto-clearing in ${(remaining / 1000).toFixed(1)}s`;
+
+      if (remaining <= 0) {
+        this.cancelAutoClearCountdown();
+        if (this.canvasController && !this.canvasController.isEmpty()) {
+          this.canvasController.clear();
+          this.playSound("clear");
+        }
+      }
+    };
+
+    updateCountdown();
+    this.autoClearInterval = setInterval(updateCountdown, 40);
+  }
+
+  cancelAutoClearCountdown() {
+    if (this.autoClearInterval) {
+      clearInterval(this.autoClearInterval);
+      this.autoClearInterval = null;
+    }
+    const progressEl = document.getElementById("autoClearProgress") || this.autoClearProgress;
+    const barEl = document.getElementById("autoClearBar") || this.autoClearBar;
+    if (progressEl) {
+      progressEl.classList.add("hidden");
+    }
+    if (barEl) {
+      barEl.style.width = "100%";
+    }
   }
 
   // ================= FEEDBACK SUBMISSION =================
@@ -656,7 +738,7 @@ class PixelPenApp {
         osc.start(now);
         osc.stop(now + 0.25);
       }
-    } catch (_) {}
+    } catch (_) { }
   }
 
   // ================= THEME MANAGER =================

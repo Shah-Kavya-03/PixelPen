@@ -19,9 +19,9 @@ from fastapi.testclient import TestClient
 # Ensure backend/app is in Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend", "app")))
 
-from main import app
-from preprocess import preprocess_digit, decode_image, shared_final_mnist_stage
-from model_loader import model_loader
+from backend.app.main import app
+from backend.app.preprocess import preprocess_digit, decode_image, shared_final_mnist_stage
+from backend.app.model_loader import model_loader
 
 client = TestClient(app)
 

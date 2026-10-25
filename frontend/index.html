@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PixelPen: Handwritten Digit Recognition</title>
-  <meta name="description" content="Draw it. Snap it. Let AI read it. Real-time handwritten digit recognition powered by Convolutional Neural Networks (CNN).">
+  <meta name="description"
+    content="Draw it. Snap it. Let AI read it. Real-time handwritten digit recognition powered by Convolutional Neural Networks (CNN).">
   <meta name="theme-color" content="#00f0ff">
 
   <!-- PWA Manifest & Icons -->
@@ -15,10 +17,13 @@
   <!-- Google Fonts: Outfit (Display) & JetBrains Mono (Stats/Data) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <!-- Ambient Neural Glow Orbs -->
   <div class="ambient-glow glow-cyan" aria-hidden="true"></div>
@@ -26,7 +31,7 @@
 
   <!-- Main Container -->
   <div class="app-layout">
-    
+
     <!-- Top Navigation Header -->
     <header class="app-header">
       <div class="header-brand">
@@ -86,17 +91,28 @@
     <!-- Navigation Mode Tabs -->
     <nav class="mode-tabs" role="tablist" aria-label="Input Modes">
       <button class="tab-btn active" id="tabCanvas" role="tab" aria-selected="true" data-tab="canvas">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 19l7-7 3 3-7 7-3-3z" />
+          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+          <path d="M2 2l7.586 7.586" />
+          <circle cx="11" cy="11" r="2" />
+        </svg>
         <span>Draw Digit</span>
       </button>
 
       <button class="tab-btn" id="tabUpload" role="tab" aria-selected="false" data-tab="upload">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
         <span>Snap & Upload</span>
       </button>
 
       <button class="tab-btn" id="tabChallenge" role="tab" aria-selected="false" data-tab="challenge">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
         <span>Digit Challenge</span>
       </button>
     </nav>
@@ -114,13 +130,23 @@
               <h2 class="panel-title">Interactive Canvas</h2>
               <span class="panel-subtitle">Draw with mouse, touch, or stylus pencil</span>
             </div>
-            
-            <div class="live-toggle-wrap" title="Automatically predict as you draw">
-              <label class="switch-label">
-                <input type="checkbox" id="livePredictToggle" checked>
-                <span class="switch-slider"></span>
-              </label>
-              <span class="live-badge">Live Prediction</span>
+
+            <div class="header-toggles">
+              <div class="live-toggle-wrap" title="Automatically predict as you draw">
+                <label class="switch-label">
+                  <input type="checkbox" id="livePredictToggle" checked>
+                  <span class="switch-slider"></span>
+                </label>
+                <span class="live-badge">Live Predict</span>
+              </div>
+
+              <div class="live-toggle-wrap" title="Automatically clears the canvas after an idle countdown delay">
+                <label class="switch-label">
+                  <input type="checkbox" id="autoClearToggle" checked>
+                  <span class="switch-slider"></span>
+                </label>
+                <span class="live-badge" id="autoClearBadge">Auto-Clear</span>
+              </div>
             </div>
           </div>
 
@@ -139,6 +165,17 @@
             </div>
             <!-- HTML5 Interactive Drawing Canvas -->
             <canvas id="digitCanvas" width="300" height="300"></canvas>
+
+            <!-- Auto-Clear Countdown Overlay & Progress Bar -->
+            <div class="auto-clear-progress hidden" id="autoClearProgress" aria-live="polite">
+              <div class="auto-clear-info">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span class="auto-clear-text" id="autoClearText">Auto-clearing in 2.0s</span>
+              </div>
+              <div class="auto-clear-track">
+                <div class="auto-clear-bar" id="autoClearBar"></div>
+              </div>
+            </div>
           </div>
 
           <!-- Canvas Toolbar Controls -->
@@ -152,17 +189,25 @@
             <!-- Action Buttons -->
             <div class="toolbar-group action-buttons">
               <button class="btn-tool" id="undoBtn" title="Undo Last Stroke (Ctrl+Z or U)" disabled>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 14L4 9l5-5" />
+                  <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
+                </svg>
                 <span>Undo</span>
               </button>
 
               <button class="btn-tool" id="clearBtn" title="Clear Canvas (C)">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
                 <span>Clear</span>
               </button>
 
               <button class="btn-primary" id="predictBtn" title="Run CNN Prediction (Enter)">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
                 <span>Predict</span>
                 <kbd class="kbd-hint">Enter</kbd>
               </button>
@@ -186,7 +231,11 @@
 
             <div class="dropzone-content" id="dropzonePrompt">
               <div class="dropzone-icon">
-                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                  <path d="M12 12v9" />
+                  <path d="m16 16-4-4-4 4" />
+                </svg>
               </div>
               <p class="dropzone-title">Drag & drop photo here</p>
               <p class="dropzone-subtitle">or choose an image option below</p>
@@ -194,16 +243,24 @@
               <div class="dropzone-actions">
                 <!-- Mobile Camera Snapshot Button -->
                 <label class="btn-primary btn-camera" for="cameraInput">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
                   <span>Camera Snap</span>
                   <input type="file" id="cameraInput" accept="image/*" capture="environment" class="visually-hidden">
                 </label>
 
                 <!-- File Picker Button -->
                 <label class="btn-tool" for="fileInput">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
                   <span>Browse File</span>
-                  <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp" class="visually-hidden">
+                  <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp"
+                    class="visually-hidden">
                 </label>
               </div>
             </div>
@@ -320,7 +377,8 @@
           <!-- Low Confidence Warning Banner -->
           <div class="low-conf-alert hidden" id="lowConfAlert">
             <span class="alert-icon">⚠️</span>
-            <span class="alert-text">Confidence is low (&lt;60%). Try centering the digit or redrawing with a thicker stroke.</span>
+            <span class="alert-text">Confidence is low (&lt;60%). Try centering the digit or redrawing with a thicker
+              stroke.</span>
           </div>
 
           <!-- All 10 Softmax Probabilities Bar Graph (0-9) -->
@@ -371,11 +429,12 @@
 
           <!-- Horizontal Step-by-Step Visualization Strip -->
           <div class="pipeline-steps-strip">
-            
+
             <div class="pipeline-step">
               <div class="step-badge">1</div>
               <div class="step-canvas-box">
-                <img id="stageOriginal" alt="Original Input" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+                <img id="stageOriginal" alt="Original Input"
+                  src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
               </div>
               <span class="step-name">Original</span>
             </div>
@@ -385,7 +444,8 @@
             <div class="pipeline-step">
               <div class="step-badge">2</div>
               <div class="step-canvas-box">
-                <img id="stageGray" alt="Grayscale & Denoised" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+                <img id="stageGray" alt="Grayscale & Denoised"
+                  src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
               </div>
               <span class="step-name">Denoise</span>
             </div>
@@ -395,7 +455,8 @@
             <div class="pipeline-step">
               <div class="step-badge">3</div>
               <div class="step-canvas-box">
-                <img id="stageThreshold" alt="Adaptive Threshold" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+                <img id="stageThreshold" alt="Adaptive Threshold"
+                  src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
               </div>
               <span class="step-name">Threshold</span>
             </div>
@@ -405,7 +466,8 @@
             <div class="pipeline-step">
               <div class="step-badge">4</div>
               <div class="step-canvas-box">
-                <img id="stageCropped" alt="Contour Bounding Box" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+                <img id="stageCropped" alt="Contour Bounding Box"
+                  src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
               </div>
               <span class="step-name">Bounding Box</span>
             </div>
@@ -415,7 +477,8 @@
             <div class="pipeline-step highlight-step">
               <div class="step-badge">5</div>
               <div class="step-canvas-box final-pixel-box" id="finalPixelBox">
-                <img id="stageFinal28" alt="Final Centered 28x28 Grid" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
+                <img id="stageFinal28" alt="Final Centered 28x28 Grid"
+                  src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><rect width='60' height='60' fill='%23111827'/></svg>">
               </div>
               <span class="step-name">28×28 MNIST</span>
             </div>
@@ -496,7 +559,8 @@
           <div class="shortcut-row"><kbd>U</kbd> or <kbd>Ctrl+Z</kbd><span>Undo stroke</span></div>
           <div class="shortcut-row"><kbd>M</kbd><span>Mute / Unmute audio</span></div>
           <div class="shortcut-row"><kbd>T</kbd><span>Toggle Dark / Light theme</span></div>
-          <div class="shortcut-row"><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd><span>Switch modes (Draw / Upload / Challenge)</span></div>
+          <div class="shortcut-row"><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd><span>Switch modes (Draw / Upload /
+              Challenge)</span></div>
         </div>
       </div>
     </div>
@@ -520,4 +584,5 @@
     }
   </script>
 </body>
+
 </html>
